@@ -1,4 +1,3 @@
-
 #include "processor.h"
 #include <iostream>
 #include <cctype>
@@ -22,10 +21,15 @@ void Processor::execute(const std::vector<Instruction>& commands) {
 
         switch (instr.type) {
 
-            case InstrType::MOV:
-                registers[instr.dest] = getValue(instr.source1);
-                break;
-
+							case InstrType::MOV:
+    									if (instr.dest[0] == 'R') {
+        											// destination is register
+        											registers[instr.dest] = getValue(instr.source1);
+    									} else {
+        												// destination is variable
+        							varmemory[instr.dest] = getValue(instr.source1);
+    									}
+    						break;
             case InstrType::ADD:
                 registers[instr.dest] =
                     getValue(instr.source1) + getValue(instr.source2);
