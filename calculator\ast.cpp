@@ -1,137 +1,234 @@
 
-#include "ast.h"
+#include "lexerLilit.h"
 #include <cctype>
 #include <stdexcept>
 
 using namespace std;
 
-Node::Node(int v)
-    : type(NodeType::NUMBER), op(OpType::NONE), value(v),
-      left(nullptr), right(nullptr) {}
-
-Node::Node(const string& n)
-    : type(NodeType::VARIABLE), op(OpType::NONE), value(0), name(n),
-      left(nullptr), right(nullptr) {}
-
-Node::Node(OpType o, Node* l, Node* r)
-    : type(NodeType::OPERATOR), op(o), value(0),
-      left(l), right(r) {}
-
-void Calculator_AST::skip_spaces() {
-    while (pos < expr.size() && isspace(expr[pos]))
-        pos++;
+Node::Node(int v) {
+    type = NodeType::NUMBER;
+    op = OpType::NONE;
+    value = v;
+    var = '\0';
+    left = right = nullptr;
 }
 
-void Calculator_AST::check_bounds() {
-    if (pos >= expr.size())
-        throw runtime_error("Unexpected end of input");
+Node::Node(char c) {
+    type = NodeType::VARIABLE;
+    op = OpType::NONE;
+    value = 0;
+    var = c;
+    left = right = nullptr;
 }
 
+Node::Node(OpType o, Node* l, Node* r) {
+    type = NodeType::OPERATOR; 
+    op = o;
+    value = 0;
+    var = '\0';
+    left = l;
+    right = r;
+}
 
-Node* Calculator_AST::parse_identifier() {
-    skip_spaces();
+void SymbolTable::set(const char& name, int value) {
+    table[name] = value;
+}
 
-    if (!isalpha(expr[pos]))
-        throw runtime_error("Expected variable");
+int SymbolTable::get(const char& name) const {
+    auto it = table.find(name);
+    if (it != table.end()) return it->second;
+    throw runtime_error("Unknown variable: " + string(1, name));
+}
 
-    string name;
-    while (pos < expr.size() && isalnum(expr[pos])) {
-        name += expr[pos];
-        pos++;
+bool SymbolTable::exists(const char& name) const {
+    return table.find(name) != table.end();
+}
+
+Lexer::Lexer(string input_text) {
+    text = input_text;
+    pos = 0;
+    current = text.empty() ? '\0' : text[0];
+}
+
+void Lexer::advance() {
+    pos++;
+    current = (pos < text.size()) ? text[pos] : '\0';
+}
+
+void Lexer::skip_whitespace() {
+    while (current == ' ')
+        advance();
+}
+
+Token Lexer::number() {
+    string result;
+    while (current != '\0' && isdigit(current)) {
+        result += current;
+        advance();
+    }
+    return Token{TokenType::NUMBER, stoi(result), '\0'};
+}
+
+vector<Token> Lexer::tokenize() {
+    vector<Token> tokens;
+
+    while (current != '\0') {
+
+        if (current == ' ') {
+            skip_whitespace();
+            continue;
+        }
+
+        if (isdigit(current)) {
+            tokens.push_back(number());
+            continue;
+        }
+
+        if (isalpha(current)) {
+            char name = current;
+            advance();
+            tokens.push_back({TokenType::IDENT, 0, name});
+            continue;
+        }
+
+        if (current == '+') { tokens.push_back({TokenType::PLUS}); advance(); continue; }
+        if (current == '-') { tokens.push_back({TokenType::MINUS}); advance(); continue; }
+        if (current == '*') { tokens.push_back({TokenType::MUL}); advance(); continue; }
+        if (current == '/') { tokens.push_back({TokenType::DIV}); advance(); continue; }
+        if (current == '(') { tokens.push_back({TokenType::LPAREN}); advance(); continue; }
+        if (current == ')') { tokens.push_back({TokenType::RPAREN}); advance(); continue; }
+        if (current == '=') { tokens.push_back({TokenType::ASSIGN}); advance(); continue; }
+
+        throw runtime_error("Invalid character");
     }
 
-    return new Node(name);
+    tokens.push_back({TokenType::END});
+    return tokens;
 }
 
-Node* Calculator_AST::parse_number() {
-    skip_spaces();
+Parser::Parser() {
+    root = nullptr;
+}
 
-    int num = 0;
-    while (pos < expr.size() && isdigit(expr[pos])) {
-        num = num * 10 + (expr[pos] - '0');
-        pos++;
+Parser::~Parser() {
+    deleteTree(root);
+}
+
+void Parser::advance() {
+    pos++;
+    current = (pos < tokens.size()) ? tokens[pos] : Token{TokenType::END, 0, '\0'};
+}
+
+Node* Parser::expr() {
+    Node* node = term();
+
+    while (current.type == TokenType::PLUS ||
+           current.type == TokenType::MINUS) {
+
+        OpType op = (current.type == TokenType::PLUS)
+                    ? OpType::ADD
+                    : OpType::SUB;
+
+        advance();
+        node = new Node(op, node, term());
     }
 
-    return new Node(num);
+    return node;
 }
 
-Node* Calculator_AST::parse_sub_add() {
-    Node* left = parse_mul_div();
+Node* Parser::term() {
+    Node* node = factor();
 
-    while (true) {
-        skip_spaces();
-        if (pos >= expr.size()) break;
+    while (current.type == TokenType::MUL ||
+           current.type == TokenType::DIV) {
 
-        if (expr[pos] == '+' || expr[pos] == '-') {
-            OpType op = (expr[pos] == '+') ? OpType::ADD : OpType::SUB;
-            pos++;
-            Node* right = parse_mul_div();
-            left = new Node(op, left, right);
-        } else break;
+        OpType op = (current.type == TokenType::MUL)
+                    ? OpType::MUL
+                    : OpType::DIV;
+
+        advance();
+        node = new Node(op, node, factor());
     }
 
-    return left;
+    return node;
 }
 
-Node* Calculator_AST::parse_mul_div() {
-    Node* left = parse_val();
-
-    while (true) {
-        skip_spaces();
-        if (pos >= expr.size()) break;
-
-        if (expr[pos] == '*' || expr[pos] == '/') {
-            OpType op = (expr[pos] == '*') ? OpType::MUL : OpType::DIV;
-            pos++;
-            Node* right = parse_val();
-            left = new Node(op, left, right);
-        } else break;
-    }
-
-    return left;
-}
-
-Node* Calculator_AST::parse_val() {
-    skip_spaces();
-    check_bounds();
-
-    if (expr[pos] == '(') {
-        pos++;
-        Node* node = parse_sub_add();
-
-        skip_spaces();
-        if (pos >= expr.size() || expr[pos] != ')')
-            throw runtime_error("Mismatched parentheses");
-
-        pos++;
+Node* Parser::factor() {
+    if (current.type == TokenType::NUMBER) {
+        Node* node = new Node(current.value);
+        advance();
         return node;
     }
 
-    if (isdigit(expr[pos]))
-        return parse_number();
+    if (current.type == TokenType::IDENT) {
+        Node* node = new Node(current.name);
+        advance();
+        return node;
+    }
 
-    if (isalpha(expr[pos]))
-        return parse_identifier();
+    if (current.type == TokenType::LPAREN) {
+        advance();
+        Node* node = expr();
 
-    throw runtime_error("Unexpected token");
+        if (current.type != TokenType::RPAREN)
+            throw runtime_error("Missing ')'");
+
+        advance();
+        return node;
+    }
+
+    throw runtime_error("Invalid factor");
 }
 
-Node* Calculator_AST::parse(const string& s) {
-    expr = s;
+Node* Parser::statement() {
+    if (current.type == TokenType::IDENT &&
+        tokens[pos + 1].type == TokenType::ASSIGN) {
+
+        char varName = current.name;
+        advance(); 
+        advance(); 
+
+        Node* right = expr();
+        Node* left = new Node(varName);
+
+        Node* assign = new Node(OpType::NONE, left, right);
+        assign->type = NodeType::ASSIGN; 
+
+        return assign;
+    }
+
+    return expr();
+}
+
+Node* Parser::parse(vector<Token> t) {
+    tokens = t;
     pos = 0;
+    current = tokens[0];
 
-    Node* root = parse_sub_add();
+    if (root)
+        deleteTree(root);
 
-    skip_spaces();
-    if (pos != expr.size())
-        throw runtime_error("Unexpected characters at end");
+    root = statement();
+
+    if (current.type != TokenType::END)
+        throw runtime_error("Unexpected input");
 
     return root;
 }
 
-void free_tree_recursive(Node* node) {
+void Parser::deleteTree(Node* node) {
     if (!node) return;
-    free_tree_recursive(node->left);
-    free_tree_recursive(node->right);
+    deleteTree(node->left);
+    deleteTree(node->right);
     delete node;
+}
+
+void Parser::collectVariables(Node* node, set<char>& vars) {
+    if (!node) return;
+
+    if (node->type == NodeType::VARIABLE)
+        vars.insert(node->var);
+
+    collectVariables(node->left, vars);
+    collectVariables(node->right, vars);
 }
