@@ -3,7 +3,7 @@
 #include <string>
 #include "assemb.h"
 
-class MachineCode
+class BinaryCode
 {
 public:
     std::vector<uint32_t> generate(const std::vector<AssemblyInstruction>& asmCode);
