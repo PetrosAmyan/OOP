@@ -3,9 +3,9 @@
 #include <fstream>
 #include <stdexcept>
 
-CPU::CPU() { reset(); }
+processor::processor() { reset(); }
 
-void CPU::reset() {
+void processor::reset() {
     for (int i = 0; i < 8; i++) R[i] = 0;
     PC = 0;
     SP = 65536;   // stack at top of memory
@@ -17,7 +17,7 @@ void CPU::reset() {
     memory.assign(65536, 0); // fresh memory
 }
 
-void CPU::dumpRegisters() const {
+void processor::dumpRegisters() const {
     std::cout << "\n=== CPU Registers ===\n";
     for (int i = 0; i < 8; i++) {
         std::cout << "R" << i << ": " << R[i] << "\n";
@@ -26,7 +26,7 @@ void CPU::dumpRegisters() const {
         << " Flags: Z=" << zero_flag << " N=" << negative_flag << "\n";
 }
 
-CPUSimulator::CPUSimulator() {}
+Simulator::CPUSimulator() {}
 CPUSimulator::~CPUSimulator() { program.clear(); cpu.memory.clear(); }
 
 void CPUSimulator::loadProgram(const std::string& filename) {
