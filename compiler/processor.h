@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <string>
 
-// Opcode definitions
+// Operation codes
 #define OP_ADD   1
 #define OP_SUB   2
 #define OP_MUL   3
@@ -32,18 +32,18 @@
 #define OP_POP   34
 #define OP_HALT 255
 
-struct processor {
-    uint32_t R[8];   // General registers R0–R7
-    uint32_t PC;     // Program Counter
-    uint32_t SP;     // Stack Pointer
-    uint32_t RA;     // Return Address
+struct Processor {
+    uint32_t R[8];  
+    uint32_t PC;     
+    uint32_t SP;     
+    uint32_t RA;     
 
     std::vector<uint8_t> memory;
     bool zero_flag;
     bool negative_flag;
     bool running;
 
-    processor();
+    Processor();
     void reset();
     void dumpRegisters() const;
 };
@@ -60,7 +60,7 @@ public:
     uint32_t getRegister(int idx) const;
 
 private:
-    processor cpu;
+    Processor cpu;
     std::vector<uint32_t> program;
 
     uint32_t loadWord(uint32_t address);
