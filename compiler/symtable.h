@@ -39,11 +39,11 @@ public:
     void declare(const std::string& name, const std::string& type);
     void declareParameter(const std::string& name, int index);
 
-    // Stack management
+    // work with stack
     int allocateStackSlot();
     int getCurrentStackOffset() const { return currentStackOffset; }
 
-    // Register management
+    // work with register
     void setRegister(const std::string& name, const std::string& reg);
     void clearRegister(const std::string& name);
     std::string getRegister(const std::string& name);
