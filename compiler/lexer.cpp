@@ -1,6 +1,5 @@
 #include "lexer.h"
 
-
 void Lexer::advance()
 {
     pos++;
@@ -116,7 +115,7 @@ std::vector<Token> Lexer::tokenize()
             continue;
         }
 
-        // ==
+        
         if (current == '=' && pos + 1 < text.size() && text[pos + 1] == '=')
         {
             advance();
@@ -132,7 +131,7 @@ std::vector<Token> Lexer::tokenize()
             continue;
         }
 
-               
+        
         if (current == '!' && pos + 1 < text.size() && text[pos + 1] == '=')
         {
             advance();
@@ -141,7 +140,7 @@ std::vector<Token> Lexer::tokenize()
             continue;
         }
 
-    
+        
         if (current == '<' && pos + 1 < text.size() && text[pos + 1] == '=')
         {
             advance();
@@ -158,7 +157,7 @@ std::vector<Token> Lexer::tokenize()
             tokens.push_back(Token{ TokenType::GE, 0, "" });
             continue;
         }
-        // increment
+        
         if (current == '+' && pos + 1 < text.size() && text[pos + 1] == '+')
         {
             advance();
@@ -166,7 +165,7 @@ std::vector<Token> Lexer::tokenize()
             tokens.push_back(Token{ TokenType::INC, 0, "" });
             continue;
         }
-        
+        // PLUS_ASSIGN
         if (current == '+' && pos + 1 < text.size() && text[pos + 1] == '=')
         {
             advance();
@@ -174,7 +173,7 @@ std::vector<Token> Lexer::tokenize()
             tokens.push_back(Token{ TokenType::PLUS_ASSIGN, 0, "" });
             continue;
         }
-        
+        //+
         if (current == '+')
         {
             tokens.push_back(Token{ TokenType::PLUS, 0, "" });
@@ -182,7 +181,7 @@ std::vector<Token> Lexer::tokenize()
             continue;
         }
 
-        // decrement
+        // DEC
         if (current == '-' && pos + 1 < text.size() && text[pos + 1] == '-')
         {
             advance();
@@ -190,7 +189,7 @@ std::vector<Token> Lexer::tokenize()
             tokens.push_back(Token{ TokenType::DEC, 0, "" });
             continue;
         }
-        // minus
+        // MINUS_ASSIGN
         if (current == '-' && pos + 1 < text.size() && text[pos + 1] == '=')
         {
             advance();
@@ -198,7 +197,7 @@ std::vector<Token> Lexer::tokenize()
             tokens.push_back(Token{ TokenType::MINUS_ASSIGN, 0, "" });
             continue;
         }
-        
+        //-
         if (current == '-')
         {
             tokens.push_back(Token{ TokenType::MINUS, 0, "" });
@@ -274,10 +273,10 @@ std::vector<Token> Lexer::tokenize()
 
 
         }
-        // NOT operator !
+    
         if (current == '!')
         {
-            // Check for != (not equal)
+            
             if (pos + 1 < text.size() && text[pos + 1] == '=')
             {
                 advance();
@@ -285,7 +284,7 @@ std::vector<Token> Lexer::tokenize()
                 tokens.push_back(Token{ TokenType::NEQ, 0, "!=" });
                 continue;
             }
-            // Single ! (logical NOT)
+            
             tokens.push_back(Token{ TokenType::NOT, 0, "!" });
             advance();
             continue;
