@@ -2,10 +2,6 @@
 #include <stdexcept>
 #include <iostream>
 
-//-------------------Parser-----------------------------
-
-//================ ADVANCE =================
-
 void Parser::advance()
 {
     pos++;
@@ -14,8 +10,6 @@ void Parser::advance()
     else
         current = { TokenType::END, 0, "" };
 }
-
-//================ ENTRY =================
 
 std::unique_ptr<BlockNode> Parser::parse(std::vector<Token> t)
 {
@@ -37,38 +31,32 @@ std::unique_ptr<BlockNode> Parser::parse(std::vector<Token> t)
     return block;
 }
 
-//factor → term → additive → comparison → expr
-//================ EXPRESSIONS =================
 
 std::unique_ptr<ExpressionNode> Parser::expr()
 {
     return  logical();
 }
 
-//================= (=/+=/-=) =================
-
 std::unique_ptr<ExpressionNode> Parser::assignment()
 {
     std::unique_ptr<ExpressionNode> node = logical();
 
-    // only left side can be variable
     if (current.type == TokenType::ASSIGN)
     {
         if (node->type != ExprType::Variable)
             throw std::runtime_error("Left side must be variable");
 
-        advance(); // =
+        advance();
 
         auto a = std::make_unique<AssignmentNode>();
         a->variableName 
             = static_cast<VariableNode*>(node.get())->name;
 
-        a->value = assignment(); // RIGHT-associative
+        a->value = assignment(); 
 
         return a;
     }
 
-    // +=
     if (current.type == TokenType::PLUS_ASSIGN)
     {
         if (node->type != ExprType::Variable)
@@ -94,8 +82,7 @@ std::unique_ptr<ExpressionNode> Parser::assignment()
         return a;
     }
 
-    // -=
-    if (current.type == TokenType::MINUS_ASSIGN)
+     if (current.type == TokenType::MINUS_ASSIGN)
     {
         if (node->type != ExprType::Variable)
             throw std::runtime_error("Left side must be variable");
@@ -123,8 +110,7 @@ std::unique_ptr<ExpressionNode> Parser::assignment()
 
     return node;
 }
-//================= COMPARISON =================
-
+// compare
 std::unique_ptr<ExpressionNode> Parser::comparison()
 {
     std::unique_ptr<ExpressionNode> node = additive();
@@ -171,7 +157,6 @@ std::unique_ptr<ExpressionNode> Parser::comparison()
         return b;
     }
 
-    // Handle logical OR (||)
     if (current.type == TokenType::OR)
     {
         auto b = std::make_unique<BinaryNode>();
@@ -184,7 +169,7 @@ std::unique_ptr<ExpressionNode> Parser::comparison()
 
     return node;
 }
-// Add after comparison()
+
 std::unique_ptr<ExpressionNode> Parser::logical()
 {
     std::unique_ptr<ExpressionNode> node = comparison();
@@ -208,7 +193,6 @@ std::unique_ptr<ExpressionNode> Parser::logical()
 
     return node;
 }
-//================= ADDITIVE (+ -) =================
 
 std::unique_ptr<ExpressionNode> Parser::additive()
 {
@@ -235,8 +219,6 @@ std::unique_ptr<ExpressionNode> Parser::additive()
     return node;
 }
 
-//================= TERM (* /) =================
-
 std::unique_ptr<ExpressionNode> Parser::term() 
 {
     std::unique_ptr<ExpressionNode> node = unary();
@@ -260,10 +242,10 @@ std::unique_ptr<ExpressionNode> Parser::term()
 
     return node;
 }
-//--------------------unar_gorcoxutyun-----------
+// unar command
 std::unique_ptr<ExpressionNode> Parser::unary()
 {
-    // Handle NOT (!)
+    
     if (current.type == TokenType::NOT)
     {
         advance();
@@ -299,11 +281,10 @@ std::unique_ptr<ExpressionNode> Parser::unary()
 
     return factor();
 }
-//================= FACTOR =================
-//================= FACTOR =================
+
 std::unique_ptr<ExpressionNode> Parser::factor()
 {
-    // NUMBER
+    
     if (current.type == TokenType::NUMBER)
     {
         auto n = std::make_unique<NumberNode>();
@@ -312,7 +293,7 @@ std::unique_ptr<ExpressionNode> Parser::factor()
         return n;
     }
 
-    // VARIABLE or FUNCTION CALL
+
     if (current.type == TokenType::IDENT)
     {
         Token nameToken = current;
@@ -389,12 +370,9 @@ std::unique_ptr<ExpressionNode> Parser::factor()
     throw std::runtime_error(errorMsg);
 }
 
-//------------------------------------Statement-----------
-
 std::unique_ptr<StatementNode> Parser::statement()
 {
 
-    //================ FUNCTION / VAR DECL =================
     if (current.type == TokenType::INT)
     {
         advance();
@@ -407,7 +385,7 @@ std::unique_ptr<StatementNode> Parser::statement()
 
         advance();
 
-        //================ FUNCTION =================
+
         if (current.type == TokenType::LPAREN)
         {
             // Enter new scope for function parameters
@@ -504,8 +482,7 @@ std::unique_ptr<StatementNode> Parser::statement()
         else
         {
 
-            //================ VARIABLE DECL =================
-
+        
             if (symbolTable.existsInCurrentScope(varName))
             {
                 throw std::runtime_error(
@@ -537,7 +514,6 @@ std::unique_ptr<StatementNode> Parser::statement()
             return stmt;
         }
     }
-    //================ ASSIGNMENT & FUNCTION CALLS =================
     if (current.type == TokenType::IDENT)
     {
         Token name = current;
@@ -545,8 +521,7 @@ std::unique_ptr<StatementNode> Parser::statement()
 
         advance();  // Consume IDENT
 
-        // Check for function call: foo(...)
-        if (current.type == TokenType::LPAREN)
+         if (current.type == TokenType::LPAREN)
         {
             // Parse function call (no variable check needed)
             auto call = std::make_unique<FunctionCallNode>();
@@ -659,8 +634,7 @@ std::unique_ptr<StatementNode> Parser::statement()
             return stmt;
         }
 
-        // Handle standalone variable expression (e.g., "x;")
-        // Check if variable exists
+        
         if (!symbolTable.exists(varName)) {
             throw std::runtime_error("Undefined variable: " + varName);
         }
@@ -681,8 +655,7 @@ std::unique_ptr<StatementNode> Parser::statement()
         return stmt;
     }
 
-    //================ RETURN =================
-    if (current.type == TokenType::RET)
+   if (current.type == TokenType::RET)
     {
         auto stmt = std::make_unique<StatementNode>();
         stmt->type = StmtType::Ret;
@@ -701,7 +674,7 @@ std::unique_ptr<StatementNode> Parser::statement()
         return stmt;
     }
 
-    //================ BLOCK =================
+    
     if (current.type == TokenType::LBRACE)
     {
         symbolTable.enterScope();
@@ -726,7 +699,6 @@ std::unique_ptr<StatementNode> Parser::statement()
         return stmt;
     }
 
-    //================ PRINT =================
     if (current.type == TokenType::PRINT)
     {
         auto stmt = std::make_unique<StatementNode>();
@@ -754,7 +726,6 @@ std::unique_ptr<StatementNode> Parser::statement()
 
         return stmt;
     }
-    //================ IF =================
     if (current.type == TokenType::IF)
     {
         auto stmt = std::make_unique<StatementNode>();
@@ -800,7 +771,7 @@ std::unique_ptr<StatementNode> Parser::statement()
             // Check for else if
             if (current.type == TokenType::IF)
             {
-                // Parse the else-if as a nested if statement
+                
                 auto elseIfStmt = statement();
                 if (elseIfStmt->type == StmtType::If)
                 {
@@ -809,7 +780,7 @@ std::unique_ptr<StatementNode> Parser::statement()
             }
             else
             {
-                // Parse else body
+                
                 if (current.type != TokenType::LBRACE)
                     throw std::runtime_error("Expected { after else");
 
@@ -829,7 +800,8 @@ std::unique_ptr<StatementNode> Parser::statement()
 
         return stmt;
     }
-    //================ WHILE =================
+    // while loop
+    
     if (current.type == TokenType::WHILE)
     {
         auto stmt = std::make_unique<StatementNode>();
