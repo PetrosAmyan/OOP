@@ -55,9 +55,9 @@ void IR::visitIf(IfNode* node, const std::string& endLabel)
 
 void IR::emitCondition(ExpressionNode* expr, const std::string& falseLabel)
 {
-    // CASE 1: Binary conditions
+    
 
-            // single variable condition: if (a)
+            // if (b)
     if (expr->type == ExprType::Variable)
     {
         std::string v = visitExpr(expr);
@@ -106,7 +106,7 @@ void IR::emitCondition(ExpressionNode* expr, const std::string& falseLabel)
             instructions.push_back({ "JEQ", "", "", falseLabel, "" });
             break;
 
-            // AND (a && b)
+            // x && y
           
         case OpType::AND:
         {
@@ -114,17 +114,15 @@ void IR::emitCondition(ExpressionNode* expr, const std::string& falseLabel)
             emitCondition(node->right.get(), falseLabel);
             return;
         }
-
-        // OR (a || b)
       
         case OpType::OR:
         {
             std::string skip = newLabel();
 
-            // if left is true → skip failure
+            
             emitCondition(node->left.get(), skip);
 
-            // if right is false → fail
+            
             emitCondition(node->right.get(), falseLabel);
 
             instructions.push_back({ "LABEL", "", "", skip, "" });
@@ -138,8 +136,7 @@ void IR::emitCondition(ExpressionNode* expr, const std::string& falseLabel)
         return;
     }
 
-    // CASE 2: NOT (!a)
-  
+    
     if (expr->type == ExprType::Unary)
     {
         auto* node = static_cast<UnaryNode*>(expr);
@@ -176,7 +173,6 @@ std::string IR::visitExpr(ExpressionNode* expr)
     }
 
 
-// VARIABLE
     if (expr->type == ExprType::Variable)
     {
         std::string t = newTemp();
@@ -191,8 +187,7 @@ std::string IR::visitExpr(ExpressionNode* expr)
     }
 
 
-    // BINARY
-    if (expr->type == ExprType::Binary)
+     if (expr->type == ExprType::Binary)
     {
         auto* node = static_cast<BinaryNode*>(expr);
         
@@ -243,7 +238,6 @@ std::string IR::visitExpr(ExpressionNode* expr)
             return t;
         }
 
-            // a -= b
         case OpType::MINUS_ASSIGN:
         {
             std::string l = visitExpr(node->left.get());
@@ -279,12 +273,12 @@ std::string IR::visitExpr(ExpressionNode* expr)
         return t;
     }
 
-    // INC (++var) and (var++)
+
     if (expr->type == ExprType::Unary && static_cast<UnaryNode*>(expr)->op == OpType::INC)
     {
         auto* node = static_cast<UnaryNode*>(expr);
 
-        // Get the variable name from the inner expression
+
         std::string varName;
         if (node->expr->type == ExprType::Variable) {
             varName = static_cast<VariableNode*>(node->expr.get())->name;
@@ -293,7 +287,6 @@ std::string IR::visitExpr(ExpressionNode* expr)
             throw std::runtime_error("INC can only be applied to variables");
         }
 
-        // Load current value
         std::string loadTemp = newTemp();
         instructions.push_back({
             "LOAD",
@@ -303,7 +296,6 @@ std::string IR::visitExpr(ExpressionNode* expr)
             "int"
             });
 
-        // Create constant 1
         std::string one = newTemp();
         instructions.push_back({ "NUMBER", "1", "", one, "int" });
 
@@ -442,7 +434,7 @@ void IR::visitStatement(StatementNode* stmt)
 {
     switch (stmt->type)
     {
-    //================ ASSIGNMENT =================
+    
     case StmtType::Assignment:
     {
         auto* asg = stmt->assignNode.get();
@@ -459,8 +451,7 @@ void IR::visitStatement(StatementNode* stmt)
 
         break;
     }
-    //================ EXPRESSION =================
-    case StmtType::Expression:
+        case StmtType::Expression:
     {
         visitExpr(stmt->exprNode.get());
         break;
@@ -624,3 +615,4 @@ void IR::visitStatement(StatementNode* stmt)
         throw std::runtime_error("Unsupported statement type in IR");
     }
 }
+
