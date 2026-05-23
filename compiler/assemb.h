@@ -23,10 +23,13 @@ public:
 
 private:
     std::string getReg(const std::string& temp);
+    std::string getVarAddress(const std::string& varName);
 
     std::unordered_map<std::string, std::string> regMap;
+    std::unordered_map<std::string, int> varMem;
     int regIndex;
-    int labelCounter;  // Add this
-    std::string currentFunction;  // Add this to track current function
+    int labelCounter;
+    int nextVarAddr;
+    std::string currentFunction;
 
 };
