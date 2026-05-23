@@ -1,11 +1,7 @@
 #pragma once
 #include "Lexer.h"
 
-//========================================================== NODES (Expressions AST) =======================
-
-
-//========== EXPRESSIONS (INHERITANCE) =================
-
+//Nodes 
 enum class ExprType
 {
     Number,
@@ -17,14 +13,12 @@ enum class ExprType
     Logical,
 };
 
-//---------------- BLOCK ----------------
 struct StatementNode;
 struct BlockNode
 {
     std::vector<std::unique_ptr<StatementNode>> statements;
 
 };
-//---------------- BASE ----------------
 
 struct ExpressionNode
 {
@@ -32,7 +26,6 @@ struct ExpressionNode
     virtual ~ExpressionNode() = default;
 };
 
-//---------------- NUMBER ----------------
 
 struct NumberNode : ExpressionNode
 {
@@ -44,7 +37,6 @@ struct NumberNode : ExpressionNode
     }
 };
 
-//---------------- VARIABLE ----------------
 
 struct VariableNode : ExpressionNode
 {
@@ -55,8 +47,6 @@ struct VariableNode : ExpressionNode
         type = ExprType::Variable;
     }
 };
-
-//---------------- BINARY ----------------
 
 struct BinaryNode : ExpressionNode
 {
@@ -72,7 +62,6 @@ struct BinaryNode : ExpressionNode
     }
 };
 
-//---------------- FunctionCall ----------------
 
 struct FunctionCallNode : ExpressionNode
 {
@@ -106,8 +95,6 @@ struct AssignmentNode : ExpressionNode
         type = ExprType::Assignment;
     }
 };
-
-//============================================== EXTRA NODES (Statements AST)=================
 
 struct IfNode
 {
@@ -156,9 +143,6 @@ struct PrintNode
 
 };
 
-//================ STATEMENTS =================
-
-
 enum class StmtType
 {
     If,
@@ -189,3 +173,4 @@ struct StatementNode
 
 
 };
+
