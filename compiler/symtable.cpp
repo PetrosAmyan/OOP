@@ -1,7 +1,7 @@
 #include "symtable.h"
 
 SymbolTable::SymbolTable() {
-    enterScope();  // Global scope
+    enterScope();  
     currentStackOffset = 0;
 }
 
@@ -15,20 +15,19 @@ void SymbolTable::exitScope() {
     scopes.pop_back();
 }
 
-// ========== THIS WAS MISSING ==========
+
 bool SymbolTable::existsInCurrentScope(const std::string& name) {
     if (scopes.empty())
         return false;
-    return scopes.back().count(name) > 0;  // or find() != end()
+    return scopes.back().count(name) > 0;  
 }
-// ======================================
 
 bool SymbolTable::exists(const std::string& name) {
     return lookup(name) != nullptr;
 }
 
 Symbol* SymbolTable::lookup(const std::string& name) {
-    // Search from innermost to outermost scope
+    
     for (int i = scopes.size() - 1; i >= 0; i--) {
         auto it = scopes[i].find(name);
         if (it != scopes[i].end())
@@ -38,7 +37,7 @@ Symbol* SymbolTable::lookup(const std::string& name) {
 }
 
 int SymbolTable::allocateStackSlot() {
-    currentStackOffset -= 4;  // Stack grows downward
+    currentStackOffset -= 4;  
     return currentStackOffset;
 }
 
@@ -59,7 +58,7 @@ void SymbolTable::declareParameter(const std::string& name, int index) {
     Symbol sym;
     sym.name = name;
     sym.type = "int";
-    sym.stackOffset = 8 + (index * 4);  // Parameters start at BP+8
+    sym.stackOffset = 8 + (index * 4); 
     sym.isParameter = true;
     sym.paramIndex = index;
 
