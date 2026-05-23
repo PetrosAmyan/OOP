@@ -4,18 +4,19 @@
 Assembler::Assembler()
 {
     regMap.clear();
-    regIndex = 5; // R5–R7 are temp registers
-    labelCounter = 0;  
+    regIndex = 5; 
+    labelCounter = 0;
+    nextVarAddr = 200; 
 }
 
-// register allocator (t1 → R5 etc.)
 
 std::string Assembler::getReg(const std::string& temp)
 {
-    // Guard against empty strings
-    if (temp.empty()) {
+    if (temp.empty())
         return "R0";
-    }
+
+    if (temp.size() == 2 && temp[0] == 'R' && isdigit(temp[1]))
+        return temp;
 
     if (regMap.find(temp) != regMap.end())
         return regMap[temp];
@@ -30,8 +31,19 @@ std::string Assembler::getReg(const std::string& temp)
     return r;
 }
 
+// return memory address
+std::string Assembler::getVarAddress(const std::string& varName)
+{
+    if (varMem.find(varName) == varMem.end()) {
+        varMem[varName] = nextVarAddr;
+        nextVarAddr += 4;
+    }
+    return std::to_string(varMem[varName]);
+}
 
-// IR → Assembly
+
+
+// transfer into ir - assem
 
 std::vector<AssemblyInstruction>
 Assembler::generate(const std::vector<IRInstruction>& ir)
@@ -40,7 +52,7 @@ Assembler::generate(const std::vector<IRInstruction>& ir)
 
     for (auto& i : ir)
     {
-        // ================= ADD =================
+        
         if (i.op == "ADD")
         {
             std::string r1 = getReg(i.arg1);
@@ -50,7 +62,7 @@ Assembler::generate(const std::vector<IRInstruction>& ir)
             out.push_back({ "ADD", rd, r1, r2, "" });
         }
 
-        // ================= SUB =================
+    
         else if (i.op == "SUB")
         {
             std::string r1 = getReg(i.arg1);
@@ -60,7 +72,7 @@ Assembler::generate(const std::vector<IRInstruction>& ir)
             out.push_back({ "SUB", rd, r1, r2, "" });
         }
 
-        // ================= MUL =================
+    
         else if (i.op == "MUL")
         {
             std::string r1 = getReg(i.arg1);
@@ -70,7 +82,7 @@ Assembler::generate(const std::vector<IRInstruction>& ir)
             out.push_back({ "MUL", rd, r1, r2, "" });
         }
 
-        // ================= DIV =================
+        
         else if (i.op == "DIV")
         {
             std::string r1 = getReg(i.arg1);
@@ -80,29 +92,30 @@ Assembler::generate(const std::vector<IRInstruction>& ir)
             out.push_back({ "DIV", rd, r1, r2, "" });
         }
 
-        // ================= NUMBER =================
+        
         else if (i.op == "NUMBER")
         {
             std::string rd = getReg(i.result);
             out.push_back({ "LI", rd, i.arg1, "", "" });
         }
 
-        // ================= ASSIGN =================
+    
         else if (i.op == "ASSIGN")
         {
-            std::string r = getReg(i.arg1);
-            out.push_back({ "STORE", i.result, r, "", "" });  // STORE, not MOV
+            std::string srcReg  = getReg(i.arg1);
+            std::string addrStr = getVarAddress(i.result);
+            out.push_back({ "LI",    "R4", addrStr, "", "" });
+            out.push_back({ "STORE", srcReg, "R4",  "", "" });
         }
 
-        // ================= PRINT =================
+        
         else if (i.op == "PRINT")
         {
             std::string r = getReg(i.arg1);
             out.push_back({ "OUT", r, "", "", "" });
         }
 
-        // ================= JUMP =================
-        else if (i.op == "JUMP" || i.op == "JMP")
+         else if (i.op == "JUMP" || i.op == "JMP")
         {
             out.push_back({ "J", i.result, "", "", "" });
         }
@@ -114,16 +127,17 @@ Assembler::generate(const std::vector<IRInstruction>& ir)
             out.push_back({ "BEQZ", r, i.result, "", "" });
         }
 
-        // ================= FUNC_BEGIN =================
+        
         else if (i.op == "FUNC_BEGIN")
         {
             currentFunction = i.result;
             out.push_back({ "LABEL", i.result, "", "", "" });
-            out.push_back({ "PUSH", "BP", "", "", "" });
-            out.push_back({ "MOV", "BP", "SP", "", "" });
+            if (i.result != "main") {
+                out.push_back({ "PUSH", "BP", "", "", "" });
+                out.push_back({ "MOV", "BP", "SP", "", "" });
+            }
         }
 
-        // ================= FUNC_END =================
         else if (i.op == "FUNC_END")
         {
             if (i.result != "main") {
@@ -134,7 +148,6 @@ Assembler::generate(const std::vector<IRInstruction>& ir)
             currentFunction = "";
         }
 
-        // ================= LABEL =================
         else if (i.op == "LABEL")
         {
             std::string labelName;
@@ -153,11 +166,12 @@ Assembler::generate(const std::vector<IRInstruction>& ir)
 
         else if (i.op == "LOAD")
         {
-            std::string rd = getReg(i.result);
-            out.push_back({ "LOAD", rd, getReg(i.arg1), "", "" });
+            std::string dstReg  = getReg(i.result);
+            std::string addrStr = getVarAddress(i.arg1);
+            out.push_back({ "LI",   "R4", addrStr, "", "" });
+            out.push_back({ "LOAD", dstReg, "R4",  "", "" });
         }
 
-        // ================= GT =================
         else if (i.op == "GT")
         {
             std::string r1 = getReg(i.arg1);
@@ -172,7 +186,6 @@ Assembler::generate(const std::vector<IRInstruction>& ir)
             out.push_back({ "LABEL", skip, "", "", "" });
         }
 
-        // ================= LT =================
         else if (i.op == "LT")
         {
             std::string r1 = getReg(i.arg1);
@@ -187,7 +200,7 @@ Assembler::generate(const std::vector<IRInstruction>& ir)
             out.push_back({ "LABEL", skip, "", "", "" });
         }
 
-        // ================= EQ =================
+
         else if (i.op == "EQ")
         {
             std::string r1 = getReg(i.arg1);
@@ -202,7 +215,6 @@ Assembler::generate(const std::vector<IRInstruction>& ir)
             out.push_back({ "LABEL", skip, "", "", "" });
         }
 
-        // ================= NEQ =================
         else if (i.op == "NEQ")
         {
             std::string r1 = getReg(i.arg1);
@@ -217,8 +229,7 @@ Assembler::generate(const std::vector<IRInstruction>& ir)
             out.push_back({ "LABEL", skip, "", "", "" });
         }
 
-        // ================= CMP =================
-        else if (i.op == "CMP")
+            else if (i.op == "CMP")
         {
             out.push_back({ "CMP", getReg(i.arg1), getReg(i.arg2), "", "" });
         }
@@ -289,9 +300,7 @@ Assembler::generate(const std::vector<IRInstruction>& ir)
         // ================= PARAM =================
         else if (i.op == "PARAM")
         {
-            // Debug output
-            //std::cout << "PARAM: arg1=" << i.arg1 << " arg2=" << i.arg2 << " result=" << i.result << std::endl;
-
+        
             std::string r = getReg(i.arg1);
 
             if (i.arg2.empty()) {
@@ -303,8 +312,7 @@ Assembler::generate(const std::vector<IRInstruction>& ir)
             }
         }
 
-        // ================= Jumps =================
-        else if (i.op == "JLE")
+           else if (i.op == "JLE")
         {
             out.push_back({ "JLE", i.result, "", "", "" });
         }
@@ -355,10 +363,10 @@ Assembler::generate(const std::vector<IRInstruction>& ir)
             out.push_back({ "POP", i.arg1, "", "", "" });
         }
 
-        // ================= DECLARE (ignore) =================
+    
         else if (i.op == "DECLARE")
         {
-            // nothing needed
+            
         }
 
         else
@@ -384,9 +392,12 @@ Assembler::generate(const std::vector<IRInstruction>& ir)
         }
     }
 
-    if (currentFunction.empty()) {
+    
+    if (out.empty() || out.back().op != "HALT") {
         out.push_back({ "HALT", "", "", "", "" });
     }
 
     return out;
 }
+    
+           
