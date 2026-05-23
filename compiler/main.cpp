@@ -42,7 +42,7 @@ int main()
         printASM(asmCode);
 
         // 6. MACHINE CODE
-        MachineCode mcGen;
+        BinaryCode mcGen;
         auto machineCode = mcGen.generate(asmCode);
         printMC(machineCode);
 
@@ -50,11 +50,11 @@ int main()
         saveMachineCode(machineCode, "program.bin");
 
         // 8. RUN CPU SIMULATOR
-        CPUSimulator cpu;
+        ProcessorSimulator cpu;
         cpu.loadProgram("program.bin");
         cpu.run();
 
-        std::cout << "\n===== COMPILATION & EXECUTION SUCCESS =====\n";
+        std::cout << "\n compilation and processor succesed\n";
     }
     catch (const std::exception& e)
     {
