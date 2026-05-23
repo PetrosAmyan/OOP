@@ -3,8 +3,6 @@
 #include <vector>
 #include <iostream>
 
-// token type
-
 enum class TokenType
 {
 
@@ -73,8 +71,6 @@ public:
     Lexer(std::string input_text);
     std::vector<Token> tokenize();
 };
-
-//operation
 
 enum class OpType
 {
