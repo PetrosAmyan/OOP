@@ -5,7 +5,7 @@
 
 void printIR(const std::vector<IRInstruction>& ir)
 {
-    std::cout << "\n===== IR =====\n";
+    std::cout << "\n Intructions \n";
     for (auto& i : ir)
     {
         std::cout << i.op << " "
@@ -17,7 +17,7 @@ void printIR(const std::vector<IRInstruction>& ir)
 
 void printASM(const std::vector<AssemblyInstruction>& asmCode)
 {
-    std::cout << "\n===== ASSEMBLY =====\n";
+    std::cout << "\n  Assembly part \n";
     for (auto& i : asmCode)
     {
         std::cout << i.op << " "
@@ -30,7 +30,7 @@ void printASM(const std::vector<AssemblyInstruction>& asmCode)
 
 void printMC(const std::vector<uint32_t>& mc)
 {
-    std::cout << "\n===== MACHINE CODE =====\n";
+    std::cout << "\n  Binary code \n";
     for (auto& i : mc)
     {
         std::cout << "0x" << std::hex << std::setw(8)
