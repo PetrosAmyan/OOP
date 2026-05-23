@@ -1,8 +1,12 @@
+#pragma once
+#include <string>
+#include <vector>
+#include <iostream>
 #include "parser.h"
 #include "AST.h"
 
 struct IRInstruction {
-    std::string op;   // ADD, SUB, ASSIGN ..
+    std::string op;   
 
     std::string arg1;
     std::string arg2;
@@ -42,3 +46,8 @@ private:
 
     void emitCondition(ExpressionNode* expr, const std::string& falseLabel);
 };
+
+
+
+
+
