@@ -32,7 +32,7 @@
 #define OP_POP   34
 #define OP_HALT 255
 
-struct CPU {
+struct processor {
     uint32_t R[8];   // General registers R0–R7
     uint32_t PC;     // Program Counter
     uint32_t SP;     // Stack Pointer
@@ -43,15 +43,15 @@ struct CPU {
     bool negative_flag;
     bool running;
 
-    CPU();
+    processor();
     void reset();
     void dumpRegisters() const;
 };
 
-class CPUSimulator {
+class ProcessorSimulator {
 public:
-    CPUSimulator();
-    ~CPUSimulator();
+    ProcessorSimulator();
+    ~ProcessorSimulator();
 
     void loadProgram(const std::string& filename);
     void run(int maxInstructions = 10000);
@@ -60,7 +60,7 @@ public:
     uint32_t getRegister(int idx) const;
 
 private:
-    CPU cpu;
+    processor cpu;
     std::vector<uint32_t> program;
 
     uint32_t loadWord(uint32_t address);
