@@ -2,9 +2,8 @@
 #include <string>
 #include <vector>
 #include <iostream>
-//---------------------Lexer--------------------------------------
 
-//================ TOKEN =================
+// token type
 
 enum class TokenType
 {
@@ -75,7 +74,7 @@ public:
     std::vector<Token> tokenize();
 };
 
-//================ OP =================
+//operation
 
 enum class OpType
 {
