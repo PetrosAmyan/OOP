@@ -41,9 +41,9 @@
 
 
 
-// MAIN GENERATOR
+// main thing
 std::vector<uint32_t>
-MachineCode::generate(const std::vector<AssemblyInstruction>& asmCode)
+BinaryCode::generate(const std::vector<AssemblyInstruction>& asmCode)
 {
 
     std::vector<uint32_t> binary;
@@ -56,10 +56,9 @@ MachineCode::generate(const std::vector<AssemblyInstruction>& asmCode)
     return binary;
 }
 
-// ENCODE ONE INSTRUCTION
-// [ opcode:8 ][ rd:8 ][ rs1:8 ][ rs2:8 ]
+// encoding instructions
 
-uint32_t MachineCode::encode(const AssemblyInstruction& ins)
+uint32_t BinaryCode::encode(const AssemblyInstruction& ins)
 {
     if (ins.op == "LABEL") {
         return 0;
@@ -81,9 +80,9 @@ uint32_t MachineCode::encode(const AssemblyInstruction& ins)
     return (opcode << 24) | (rd << 16) | (rs1 << 8) | (rs2);
 }
 
-// OPCODE MAP
+// doing opcode
 
-uint32_t MachineCode::getOpcode(const std::string& op)
+uint32_t BinaryCode::getOpcode(const std::string& op)
 {
     if (op == "ADD")   return OP_ADD;
     if (op == "SUB")   return OP_SUB;
@@ -134,10 +133,9 @@ uint32_t MachineCode::getOpcode(const std::string& op)
 }
 
 
-// REGISTER MAP
-// R0–R7 supported
+// register store place 
 
-uint32_t MachineCode::getReg(const std::string& r)
+uint32_t BinaryCode::getReg(const std::string& r)
 {
     if (r.empty()) return 0;
 
@@ -153,9 +151,9 @@ uint32_t MachineCode::getReg(const std::string& r)
 
     return 0;
 }
-//----------------machine_code_vector----TO---FILE
 
-void MachineCode::saveToFile(const std::vector<uint32_t>& binary,
+// binary code write into file
+void BinaryCode::saveToFile(const std::vector<uint32_t>& binary,
     const std::string& binaryfile)
 {
     std::ofstream out(binaryfile, std::ios::binary);
