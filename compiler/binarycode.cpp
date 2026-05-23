@@ -1,4 +1,4 @@
-#include "binarycode.h"
+#include "Binarycode.h"
 #include <stdexcept>
 #include <fstream>
 #include <iomanip>
@@ -22,10 +22,9 @@
 #define OP_JLE   17
 #define OP_JGE   18
 #define OP_JEQ   19
-#define OP_JNEQ   20
+#define OP_JNE   20  // Bug fix: was 23; must match CPU.h OP_JNE=20
 #define OP_CMP   21
-#define OP_EQ   22
-#define OP_JNE   23
+#define OP_EQ    22
 #define OP_NEQ   24 
 #define OP_LT    25
 #define OP_GT    26
@@ -41,7 +40,6 @@
 
 
 
-// main thing
 std::vector<uint32_t>
 BinaryCode::generate(const std::vector<AssemblyInstruction>& asmCode)
 {
@@ -56,7 +54,6 @@ BinaryCode::generate(const std::vector<AssemblyInstruction>& asmCode)
     return binary;
 }
 
-// encoding instructions
 
 uint32_t BinaryCode::encode(const AssemblyInstruction& ins)
 {
@@ -80,7 +77,7 @@ uint32_t BinaryCode::encode(const AssemblyInstruction& ins)
     return (opcode << 24) | (rd << 16) | (rs1 << 8) | (rs2);
 }
 
-// doing opcode
+// operations
 
 uint32_t BinaryCode::getOpcode(const std::string& op)
 {
@@ -108,7 +105,7 @@ uint32_t BinaryCode::getOpcode(const std::string& op)
     if (op == "JLE") return OP_JLE;
     if (op == "JGE") return OP_JGE;
     if (op == "JEQ") return OP_JEQ;
-    if (op == "JNEQ") return OP_JNEQ;
+    if (op == "JNEQ") return OP_JNE;
     if (op == "CMP") return OP_CMP;
     if (op == "LABEL") return 0;  // No-op
 
@@ -132,9 +129,6 @@ uint32_t BinaryCode::getOpcode(const std::string& op)
     throw std::runtime_error("Unknown opcode: " + op);
 }
 
-
-// register store place 
-
 uint32_t BinaryCode::getReg(const std::string& r)
 {
     if (r.empty()) return 0;
@@ -151,8 +145,7 @@ uint32_t BinaryCode::getReg(const std::string& r)
 
     return 0;
 }
-
-// binary code write into file
+//write in file
 void BinaryCode::saveToFile(const std::vector<uint32_t>& binary,
     const std::string& binaryfile)
 {
