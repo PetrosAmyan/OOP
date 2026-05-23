@@ -3,9 +3,9 @@
 #include <fstream>
 #include <stdexcept>
 
-processor::processor() { reset(); }
+Processor::Processor() { reset(); }
 
-void processor::reset() {
+void Processor::reset() {
     for (int i = 0; i < 8; i++) R[i] = 0;
     PC = 0;
     SP = 65536;   // stack at top of memory
@@ -17,7 +17,7 @@ void processor::reset() {
     memory.assign(65536, 0); // fresh memory
 }
 
-void processor::dumpRegisters() const {
+void Processor::dumpRegisters() const {
     std::cout << "\n=== CPU Registers ===\n";
     for (int i = 0; i < 8; i++) {
         std::cout << "R" << i << ": " << R[i] << "\n";
@@ -106,20 +106,22 @@ void ProcessorSimulator::execute(uint32_t instr) {
     case OP_LOAD: cpu.R[rd] = loadWord(cpu.R[rs1]); break;
     case OP_STORE: storeWord(cpu.R[rs1], cpu.R[rd]); break; // fixed
 
-    case OP_JMP: cpu.PC = cpu.R[rd]; jump = true; break;
-    case OP_CALL: cpu.RA = cpu.PC + 4; cpu.PC = cpu.R[rd]; jump = true; break;
-    case OP_RET: cpu.PC = cpu.RA; jump = true; break;
+    case OP_JMP:  cpu.PC = rd; jump = true; break;
+    case OP_CALL: cpu.RA = cpu.PC + 4; cpu.PC = rd; jump = true; break;
+    case OP_RET:  cpu.PC = cpu.RA; jump = true; break;
 
     case OP_CMP: {
-        int32_t result = cpu.R[rs1] - cpu.R[rs2];
+        int32_t result = (int32_t)cpu.R[rd] - (int32_t)cpu.R[rs1];
         cpu.zero_flag = (result == 0);
         cpu.negative_flag = (result < 0);
     } break;
 
-    case OP_JLT: if (cpu.negative_flag) { cpu.PC = cpu.R[rd]; jump = true; } break;
-    case OP_JGT: if (!cpu.negative_flag && !cpu.zero_flag) { cpu.PC = cpu.R[rd]; jump = true; } break;
-    case OP_JEQ: if (cpu.zero_flag) { cpu.PC = cpu.R[rd]; jump = true; } break;
-    case OP_JNE: if (!cpu.zero_flag) { cpu.PC = cpu.R[rd]; jump = true; } break;
+    case OP_JLT: if (cpu.negative_flag)                        { cpu.PC = rd; jump = true; } break;
+    case OP_JGT: if (!cpu.negative_flag && !cpu.zero_flag)     { cpu.PC = rd; jump = true; } break;
+    case OP_JLE: if (cpu.negative_flag || cpu.zero_flag)       { cpu.PC = rd; jump = true; } break;
+    case OP_JGE: if (!cpu.negative_flag)                       { cpu.PC = rd; jump = true; } break;
+    case OP_JEQ: if (cpu.zero_flag)                            { cpu.PC = rd; jump = true; } break;
+    case OP_JNE: if (!cpu.zero_flag)                           { cpu.PC = rd; jump = true; } break;
 
     case OP_AND: cpu.R[rd] = cpu.R[rs1] & cpu.R[rs2]; break;
     case OP_OR:  cpu.R[rd] = cpu.R[rs1] | cpu.R[rs2]; break;
