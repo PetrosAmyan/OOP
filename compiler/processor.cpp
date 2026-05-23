@@ -26,10 +26,10 @@ void processor::dumpRegisters() const {
         << " Flags: Z=" << zero_flag << " N=" << negative_flag << "\n";
 }
 
-Simulator::CPUSimulator() {}
-CPUSimulator::~CPUSimulator() { program.clear(); cpu.memory.clear(); }
+ProcessorSimulator::ProcessorSimulator() {}
+ProcessorSimulator::~ProcessorSimulator() { program.clear(); cpu.memory.clear(); }
 
-void CPUSimulator::loadProgram(const std::string& filename) {
+void ProcessorSimulator::loadProgram(const std::string& filename) {
     std::ifstream in(filename, std::ios::binary);
     if (!in) throw std::runtime_error("Cannot open file: " + filename);
 
@@ -48,7 +48,7 @@ void CPUSimulator::loadProgram(const std::string& filename) {
     cpu.running = true;
 }
 
-uint32_t CPUSimulator::loadWord(uint32_t address) {
+uint32_t ProcessorSimulator::loadWord(uint32_t address) {
     if (address + 3 >= cpu.memory.size())
         throw std::runtime_error("Memory access violation");
     // little-endian
@@ -58,7 +58,7 @@ uint32_t CPUSimulator::loadWord(uint32_t address) {
         (cpu.memory[address + 3] << 24);
 }
 
-void CPUSimulator::storeWord(uint32_t address, uint32_t value) {
+void ProcessorSimulator::storeWord(uint32_t address, uint32_t value) {
     if (address + 3 >= cpu.memory.size())
         throw std::runtime_error("Memory access violation");
     cpu.memory[address] = value & 0xFF;
@@ -67,18 +67,18 @@ void CPUSimulator::storeWord(uint32_t address, uint32_t value) {
     cpu.memory[address + 3] = (value >> 24) & 0xFF;
 }
 
-void CPUSimulator::push(uint32_t value) {
+void ProcessorSimulator::push(uint32_t value) {
     cpu.SP -= 4;
     storeWord(cpu.SP, value);
 }
 
-uint32_t CPUSimulator::pop() {
+uint32_t ProcessorSimulator::pop() {
     uint32_t value = loadWord(cpu.SP);
     cpu.SP += 4;
     return value;
 }
 
-uint32_t CPUSimulator::fetch() {
+uint32_t ProcessorSimulator::fetch() {
     if (cpu.PC + 3 >= cpu.memory.size()) {
         cpu.running = false;
         return 0;
@@ -86,7 +86,7 @@ uint32_t CPUSimulator::fetch() {
     return loadWord(cpu.PC);
 }
 
-void CPUSimulator::execute(uint32_t instr) {
+void ProcessorSimulator::execute(uint32_t instr) {
     uint8_t opcode = (instr >> 24) & 0xFF;
     uint8_t rd = (instr >> 16) & 0xFF;
     uint8_t rs1 = (instr >> 8) & 0xFF;
@@ -140,7 +140,7 @@ void CPUSimulator::execute(uint32_t instr) {
     if (!jump) cpu.PC += 4;
 }
 
-void CPUSimulator::run(int maxInstructions) {
+void ProcessorSimulator::run(int maxInstructions) {
     int count = 0;
     while (cpu.running && count < maxInstructions) {
         uint32_t instr = fetch();
@@ -151,7 +151,7 @@ void CPUSimulator::run(int maxInstructions) {
     cpu.dumpRegisters();
 }
 
-void CPUSimulator::step() {
+void ProcessorSimulator::step() {
     if (!cpu.running) return;
     uint32_t instr = fetch();
     if (instr == 0) {
