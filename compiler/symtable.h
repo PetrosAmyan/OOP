@@ -21,7 +21,7 @@ struct Symbol {
 class SymbolTable {
 private:
     std::vector<std::unordered_map<std::string, Symbol>> scopes;
-    int currentStackOffset;   // Current offset for next local variable
+    int currentStackOffset;   
 
 public:
     SymbolTable();
@@ -35,15 +35,13 @@ public:
 
     Symbol* lookup(const std::string& name);
 
-    // Declaration
+    
     void declare(const std::string& name, const std::string& type);
     void declareParameter(const std::string& name, int index);
 
-    // work with stack
     int allocateStackSlot();
     int getCurrentStackOffset() const { return currentStackOffset; }
 
-    // work with register
     void setRegister(const std::string& name, const std::string& reg);
     void clearRegister(const std::string& name);
     std::string getRegister(const std::string& name);
